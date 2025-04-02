@@ -4,24 +4,24 @@ Welcome to this beginner-friendly tutorial on **LangGraph**, a powerful framewor
 
 In this tutorial, you'll learn:
 
-- What LangGraph is and why it’s useful.
+- What LangGraph is and why it's useful.
 - How to build a **Question Processor** app that answers questions, classifies them, and generates tags—all in parallel—then packages the results into a neat JSON file.
 - Hands-on coding with clear steps and tests to ensure everything works.
 
-Let’s dive in!
+Let's dive in!
 
 ---
 
 ## What is LangGraph?
 
-LangGraph is a tool for designing workflows where AI agents collaborate to complete tasks. Imagine it as a coordinator that manages different steps—like answering a question, tagging it, or summarizing text—and keeps everything organized. It’s great for:
+LangGraph is a tool for designing workflows where AI agents collaborate to complete tasks. Imagine it as a coordinator that manages different steps—like answering a question, tagging it, or summarizing text—and keeps everything organized. It's great for:
 
 - **Memory**: Remembering past steps or conversations.
 - **Parallel Tasks**: Running multiple processes at once to save time.
 - **Human-in-the-Loop**: Letting you jump in to make decisions.
 - **Saving Progress**: Storing work so you can pick up where you left off.
 
-Big companies like Klarna (for customer support bots) and Uber (for generating code) use LangGraph in real-world projects, proving its value. Over the next three weeks, we’ll explore three fun use cases:
+Big companies like Klarna (for customer support bots) and Uber (for generating code) use LangGraph in real-world projects, proving its value. Over the next three weeks, we'll explore three fun use cases:
 
 1. **Week 1**: A Question Processor (this week!).
 2. **Week 2**: Turning meeting transcripts into concise minutes.
@@ -31,7 +31,7 @@ Big companies like Klarna (for customer support bots) and Uber (for generating c
 
 ## Part 1: Building a Question Processor
 
-This week, we’ll create an app that:
+This week, we'll create an app that:
 
 - Takes a question (e.g., "What is photosynthesis?").
 - Processes it in parallel to:
@@ -40,7 +40,7 @@ This week, we’ll create an app that:
   - Create tags with weights (e.g., "plants: 0.9").
 - Combines everything into a JSON document.
 
-We’ll break it into bite-sized sections with code, explanations, and tests.
+We'll break it into bite-sized sections with code, explanations, and tests.
 
 ### Setup and Prerequisites
 
@@ -113,7 +113,7 @@ load_dotenv()  # This loads the variables from .env
 
 ### Section 1: Define State and Nodes
 
-First, we’ll define the "state" (data that flows through our app) and "nodes" (tasks like answering or tagging). Open `question_processor.py` and add this code:
+First, we'll define the "state" (data that flows through our app) and "nodes" (tasks like answering or tagging). Open `question_processor.py` and add this code:
 
 ```python
 from typing import Annotated, TypedDict
@@ -122,7 +122,7 @@ from langgraph.graph import StateGraph, END
 from langchain_openai import AzureChatOpenAI
 from pydantic import BaseModel, Field
 
-# Define the state: what data we’ll track
+# Define the state: what data we'll track
 class State(TypedDict):
     question: str          # The input question
     answer: str = ""       # The generated answer
@@ -139,7 +139,7 @@ class Category(BaseModel):
 class Tags(BaseModel):
     tags: list = Field(description="List of dicts with 'tag' and 'weight' (0-1)")
 
-# Set up the language model (we’re using OpenAI’s GPT-4o)
+# Set up the language model (we're using OpenAI's GPT-4o)
 llm = AzureChatOpenAI(
     azure_deployment=os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME"),
     openai_api_version=os.environ.get("AZURE_OPENAI_API_VERSION")
@@ -171,7 +171,7 @@ def tag_node(state: State):
 - **Imports**: We bring in tools for typing (`TypedDict`), the graph framework (`StateGraph`), the OpenAI model (`ChatOpenAI`), and structured data (`BaseModel`).
 - **State**: A `TypedDict` called `State` holds our data: the question, answer, category, and tags. Default values are empty so we can fill them later.
 - **Pydantic Models**: These (e.g., `Answer`, `Category`) ensure our outputs are structured and easy to check.
-- **Language Model**: `llm` is our AI brain, set to use OpenAI’s "gpt-4o" model. You can swap this for another model if you prefer.
+- **Language Model**: `llm` is our AI brain, set to use OpenAI's "gpt-4o" model. You can swap this for another model if you prefer.
 - **Nodes**:
   - `answer_node`: Takes the question from `state` and asks the AI for a readable answer.
   - `classify_node`: Asks for a one-word category.
@@ -198,7 +198,7 @@ Check the outputs:
 
 ### Section 2: Build the Graph with Parallel Execution
 
-Now, let’s connect our nodes into a graph where tasks run in parallel. Add this code to `question_processor.py`:
+Now, let's connect our nodes into a graph where tasks run in parallel. Add this code to `question_processor.py`:
 
 ```python
 # Create the graph
@@ -257,7 +257,7 @@ You should see a dictionary with the question, answer, category, and tags. Since
 
 ### Section 3: Combine Results into JSON
 
-Let’s finish by updating the `combine` node to package everything into a JSON-friendly format. Replace the placeholder `combine` node with this:
+Let's finish by updating the `combine` node to package everything into a JSON-friendly format. Replace the placeholder `combine` node with this:
 
 ```python
 # Node to combine results into a JSON-like structure
@@ -291,7 +291,7 @@ import json
 print(json.dumps(result, indent=2))
 ```
 
-You’ll get output like:
+You'll get output like:
 
 ```json
 {
@@ -316,7 +316,7 @@ Check:
 
 #### Final Test
 
-Let’s try multiple questions:
+Let's try multiple questions:
 
 ```python
 questions = ["What is photosynthesis?", "How do rockets work?", "Tell me about history"]
@@ -332,11 +332,11 @@ Look at the outputs:
 
 ---
 
-## What’s Next?
+## What's Next?
 
-Great job building your first LangGraph app! In **Week 2**, we’ll tackle a new challenge: turning messy meeting transcripts into concise minutes. You’ll learn to extract key points and format them nicely, leveling up your skills with longer texts.
+Great job building your first LangGraph app! In **Week 2**, we'll tackle a new challenge: turning messy meeting transcripts into concise minutes. You'll learn to extract key points and format them nicely, leveling up your skills with longer texts.
 
-Here’s a quick summary of what we did today:
+Here's a quick summary of what we did today:
 
 | **Step**   | **What We Did**                        | **How to Test**                     |
 | ---------- | -------------------------------------- | ----------------------------------- |
@@ -346,4 +346,4 @@ Here’s a quick summary of what we did today:
 | Section 3  | Combined results into JSON             | Verify JSON format and accuracy     |
 | Final Test | Ran multiple questions                 | Ensure consistent, relevant results |
 
-Keep your `question_processor.py` file handy—you’re now a LangGraph explorer! See you next week for Part 2. Happy coding!
+Keep your `question_processor.py` file handy—you're now a LangGraph explorer! See you next week for Part 2. Happy coding!
