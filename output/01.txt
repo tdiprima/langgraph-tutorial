@@ -1,3 +1,23 @@
-{'answer': 'Sure! Photosynthesis is the process that plants, algae, and some bacteria use to make their own food. They take in sunlight, carbon dioxide (from the air), and water, and use these to produce glucose (a type of sugar) and oxygen.\n\nHere’s how it works in simple terms:\n\n1. **Sunlight**: Plants absorb sunlight using a green pigment in their leaves called chlorophyll.\n2. **Carbon dioxide**: They take in carbon dioxide through tiny pores in their leaves called stomata.\n3. **Water**: Plants absorb water from the soil through their roots.\n\nWith the help of sunlight, plants convert carbon dioxide and water into glucose, which they use for energy and growth. Oxygen is released as a byproduct, which is important because it’s what humans and animals breathe.\n\nIn summary, photosynthesis is how plants make their food and produce oxygen, which supports life on Earth. Cool, right? 🌱☀️'}
-{'category': 'Science'}
-{'tags': [{'tag': 'photosynthesis', 'weight': 1.0}, {'tag': 'biology', 'weight': 0.9}, {'tag': 'plant_processes', 'weight': 0.8}, {'tag': 'science', 'weight': 0.7}]}
+{
+  "question": "What is photosynthesis?",
+  "answer": "Photosynthesis is the natural process that plants, algae, and some bacteria use to create their own food and energy. It happens mainly in the leaves of plants, where tiny structures called chloroplasts contain a green pigment called chlorophyll. Chlorophyll captures sunlight, which powers the process.\n\nHere\u2019s how it works: plants take in carbon dioxide (CO\u2082) from the air through small openings in their leaves called stomata. They also absorb water (H\u2082O) from the soil through their roots. Using the energy from sunlight, plants convert the carbon dioxide and water into glucose (a type of sugar) and oxygen (O\u2082). The glucose is used by the plant as food for energy and growth, while the oxygen is released into the air as a byproduct.\n\nIn simple terms, photosynthesis is like a recipe where plants use sunlight, water, and carbon dioxide to \"cook up\" their own food and release oxygen, which is essential for life on Earth. It\u2019s a key process that keeps our planet\u2019s ecosystems balanced!",
+  "category": "Science",
+  "tags": [
+    {
+      "tag": "photosynthesis",
+      "weight": 1.0
+    },
+    {
+      "tag": "biology",
+      "weight": 0.9
+    },
+    {
+      "tag": "plant_science",
+      "weight": 0.8
+    },
+    {
+      "tag": "science",
+      "weight": 0.7
+    }
+  ]
+}

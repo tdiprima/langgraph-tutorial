@@ -25,7 +25,7 @@ class Tags(BaseModel):
 
 llm = AzureChatOpenAI(
     azure_deployment=os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME"),
-    openai_api_version=os.environ.get("AZURE_OPENAI_API_VERSION")
+    api_version=os.environ.get("AZURE_OPENAI_API_VERSION")
 )
 
 def node_answer(state: State):
