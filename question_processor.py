@@ -70,7 +70,7 @@ graph.add_node("node_answer", node_answer)
 graph.add_node("node_classify", node_classify)
 graph.add_node("node_tag", node_tag)
 graph.add_node("dispatch", dispatch_node)
-graph.add_node("combine", lambda x: x)
+graph.add_node("combine", lambda x: x)  # Add combine node first
 
 graph.set_entry_point("dispatch")
 graph.add_edge("dispatch", "node_answer")
@@ -82,5 +82,25 @@ graph.set_finish_point("combine")
 
 app = graph.compile()
 
+# result = app.invoke({"question": "What is photosynthesis?"})
+# print(result)
+
+# Node to combine results into a JSON-like structure
+def combine_node(state: State):
+    return {
+        "response": {
+            "question": state["question"],
+            "answer": state["answer"],
+            "category": state["category"],
+            "tags": state["tags"]
+        }
+    }
+
+# Update the graph with the new combine node
+graph.nodes.pop("combine")  # Remove existing node
+graph.add_node("combine", combine_node)
+app = graph.compile()  # Recompile after updating
+
 result = app.invoke({"question": "What is photosynthesis?"})
-print(result)
+import json
+print(json.dumps(result, indent=2))
