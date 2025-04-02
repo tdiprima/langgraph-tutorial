@@ -88,12 +88,10 @@ app = graph.compile()
 # Node to combine results into a JSON-like structure
 def combine_node(state: State):
     return {
-        "response": {
-            "question": state["question"],
-            "answer": state["answer"],
-            "category": state["category"],
-            "tags": state["tags"]
-        }
+        "question": state["question"],
+        "answer": state["answer"],
+        "category": state["category"],
+        "tags": state["tags"]
     }
 
 # Update the graph with the new combine node
