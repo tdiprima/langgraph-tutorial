@@ -6,15 +6,14 @@ import os
 from langgraph.graph import StateGraph, END
 from langchain_openai import AzureChatOpenAI
 from pydantic import BaseModel, Field
+import json
 
-# Define the state: what data we'll track
 class State(TypedDict):
-    question: str          # The input question
-    answer: str = ""       # The generated answer
-    category: str = ""     # The category (e.g., "science")
-    tags: list = []        # List of tags with weights
+    question: str
+    answer: str = ""
+    category: str = ""
+    tags: list = []
 
-# Define structured outputs using Pydantic
 class Answer(BaseModel):
     answer: str = Field(description="Readable answer to the question")
 
@@ -24,28 +23,24 @@ class Category(BaseModel):
 class Tags(BaseModel):
     tags: list = Field(description="List of dicts with 'tag' and 'weight' (0-1)")
 
-# Set up the language model (we're using OpenAI's GPT-4o)
 llm = AzureChatOpenAI(
     azure_deployment=os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME"),
     openai_api_version=os.environ.get("AZURE_OPENAI_API_VERSION")
 )
 
-# Node to generate an answer
-def answer_node(state: State):
+def node_answer(state: State):
     prompt = f"Answer this question in a readable way: {state['question']}"
     response = llm.invoke(prompt).content
     return {"answer": response}
 
-# Node to classify the question
-def classify_node(state: State):
+def node_classify(state: State):
     prompt = f"Classify this question into a single word category: {state['question']}"
     response = llm.invoke(prompt).content
     return {"category": response}
 
-# Node to generate tags
-def tag_node(state: State):
+def node_tag(state: State):
     prompt = f"""Generate 4 tags for this question with weights (0-1) showing importance.
-    Return ONLY valid JSON in this exact format:
+    Return ONLY valid JSON in this exact format, and do not add any additional text or "```" characters:
     {{"tags": [
         {{"tag": "example_tag1", "weight": 0.9}},
         {{"tag": "example_tag2", "weight": 0.8}}
@@ -53,18 +48,39 @@ def tag_node(state: State):
     
     Question: {state['question']}"""
     response = llm.invoke(prompt).content
-    import json
     try:
-        # Remove any leading/trailing whitespace that might affect JSON parsing
         cleaned_response = response.strip()
         tags = json.loads(cleaned_response)
-        return tags  # The response should already be in {"tags": [...]} format
+        return tags
     except json.JSONDecodeError as e:
         print(f"Error parsing JSON response: {response}")
-        # Return a default tags structure rather than failing
         return {"tags": [{"tag": "general", "weight": 1.0}]}
 
-state = {"question": "What is photosynthesis?"}
-print(answer_node(state))  # Outputs something like {"answer": "Photosynthesis is..."}
-print(classify_node(state))  # Outputs {"category": "science"}
-print(tag_node(state))  # Outputs {"tags": [{"tag": "plants", "weight": 0.9}, ...]}
+def dispatch_node(state: State):
+    return state  # Pass the state unchanged
+
+# state = {"question": "What is photosynthesis?"}
+# print(node_answer(state))
+# print(node_classify(state))
+# print(node_tag(state))
+
+graph = StateGraph(State)
+
+graph.add_node("node_answer", node_answer)
+graph.add_node("node_classify", node_classify)
+graph.add_node("node_tag", node_tag)
+graph.add_node("dispatch", dispatch_node)
+graph.add_node("combine", lambda x: x)
+
+graph.set_entry_point("dispatch")
+graph.add_edge("dispatch", "node_answer")
+graph.add_edge("node_answer", "node_classify")
+graph.add_edge("node_classify", "node_tag")
+graph.add_edge("node_tag", "combine")
+
+graph.set_finish_point("combine")
+
+app = graph.compile()
+
+result = app.invoke({"question": "What is photosynthesis?"})
+print(result)

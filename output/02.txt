@@ -1,0 +1,8 @@
+{"tags": [
+    {"tag": "photosynthesis", "weight": 1.0},
+    {"tag": "biology", "weight": 0.9},
+    {"tag": "plants", "weight": 0.8},
+    {"tag": "science", "weight": 0.7}
+]}
+
+{'question': 'What is photosynthesis?', 'answer': 'Sure! Photosynthesis is the process that plants, algae, and some bacteria use to make their own food. They take sunlight, carbon dioxide from the air, and water from the soil and turn them into energy in the form of sugar (glucose). During this process, they also produce oxygen as a byproduct, which is released into the air.\n\nHere’s how it works in simple terms:\n- **Sunlight** provides the energy.\n- **Carbon dioxide** enters through tiny holes in the plant’s leaves.\n- **Water** comes from the soil through the plant’s roots.\n\nUsing a green pigment called **chlorophyll** (found in leaves), plants combine these ingredients in a chemical reaction to create food for themselves and oxygen for the environment. This is how plants grow and how they help keep the air breathable for humans and animals. \n\nPhotosynthesis is super important because it’s the foundation of life on Earth – it not only feeds plants but also supports the entire food chain!', 'category': 'Science', 'tags': [{'tag': 'general', 'weight': 1.0}]}
