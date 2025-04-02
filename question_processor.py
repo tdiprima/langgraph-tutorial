@@ -99,6 +99,10 @@ graph.nodes.pop("combine")  # Remove existing node
 graph.add_node("combine", combine_node)
 app = graph.compile()  # Recompile after updating
 
-result = app.invoke({"question": "What is photosynthesis?"})
-import json
-print(json.dumps(result, indent=2))
+# result = app.invoke({"question": "What is photosynthesis?"})
+# print(json.dumps(result, indent=2))
+
+questions = ["What is photosynthesis?", "How do rockets work?", "Tell me about history"]
+for q in questions:
+    result = app.invoke({"question": q})
+    print(json.dumps(result, indent=2))
