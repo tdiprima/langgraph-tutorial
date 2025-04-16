@@ -1,16 +1,31 @@
 import os
+
+# Set recursion limit for LangGraph BEFORE importing LangGraph
+os.environ["LANGGRAPH_RECURSION_LIMIT"] = "100"
+
 import sys
 import json
 from typing import TypedDict, List, Dict, Any
 from dotenv import load_dotenv
-from langgraph.graph import StateGraph
+from langgraph.graph import StateGraph, END
 from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import PromptTemplate
+
+# Define the state structure for the workflow graph
+class MeetingState(TypedDict):
+    transcript: str
+    attendees: List[str]
+    key_points: List[str]
+    action_items: list
+    minutes: str
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Initialize Azure OpenAI LLM
+# NOTE: AzureChatOpenAI does not support a direct timeout argument as of langchain-openai==0.0.2.
+# If you upgrade langchain or use requests directly, you may be able to set a timeout.
+# For now, we add explicit debug prints and robust error handling around llm.invoke.
 llm = AzureChatOpenAI(
     azure_deployment=os.environ.get('AZURE_OPENAI_DEPLOYMENT_NAME', ''),
     openai_api_version=os.environ.get('AZURE_OPENAI_API_VERSION', ''),
@@ -49,15 +64,16 @@ def extract_attendees(state):
     prompt_str = prompt.format(transcript=transcript)
 
     try:
-        # Get response from Azure OpenAI
+        print("[DEBUG] About to invoke LLM for attendees...")
         response = llm.invoke(prompt_str).content
-        print(f"LLM Response for attendees: {response}")
+        print(f"[DEBUG] LLM Response for attendees: {response}")
 
         # Parse the response - handle both list literals and JSON formats
         if response.strip().startswith('[') and response.strip().endswith(']'):
             try:
                 attendees = eval(response)
-            except:
+            except Exception as e:
+                print(f"[DEBUG] eval failed, trying json.loads: {e}")
                 attendees = json.loads(response)
         else:
             # Try to extract a list from the text if not properly formatted
@@ -69,7 +85,8 @@ def extract_attendees(state):
                 # Convert to proper Python list format
                 try:
                     attendees = eval(f"[{list_str}]")
-                except:
+                except Exception as e:
+                    print(f"[DEBUG] eval failed for extracted list_str: {e}")
                     attendees = []
             else:
                 attendees = []
@@ -81,9 +98,12 @@ def extract_attendees(state):
             attendees = []
 
     except Exception as e:
-        print(f"Error parsing attendees: {e}")
+        print(f"[ERROR] Exception during LLM call or parsing for attendees: {e}")
+        import traceback
+        traceback.print_exc()
         attendees = []
 
+    print(f"[DEBUG] Final parsed attendees: {attendees}")
     # Return updated state
     return {**state, 'attendees': attendees}
 
@@ -253,6 +273,41 @@ def build_minutes(state):
     return {**state, 'minutes': minutes}
 
 
+# Create a workflow graph
+graph = StateGraph(MeetingState)
+
+# Add all processing nodes
+graph.add_node('extract_attendees', extract_attendees)
+graph.add_node('extract_key_points', extract_key_points)
+graph.add_node('extract_action_items', extract_action_items)
+graph.add_node('build_minutes', build_minutes)
+
+# Define a conditional function that always returns the same next node
+# This is a workaround for the sequential flow
+def next_step(state):
+    return "next"
+
+# Create the sequential flow
+graph.add_conditional_edges('extract_attendees', next_step,
+                          {'next': 'extract_key_points'})
+graph.add_conditional_edges('extract_key_points', next_step,
+                          {'next': 'extract_action_items'})
+graph.add_conditional_edges('extract_action_items', next_step,
+                          {'next': 'build_minutes'})
+
+# Add a final edge from build_minutes to complete the flow
+def final_step(state):
+    # Return the completed state
+    return "complete"
+
+graph.add_conditional_edges('build_minutes', final_step,
+                          {'complete': END})
+
+# Set the entry point to the first node
+graph.set_entry_point('extract_attendees')
+compiled_graph = graph.compile()
+
+
 def test():
     # Create a detailed transcript with five speakers discussing a patient-centric chatbot
     transcript = '''
@@ -318,35 +373,34 @@ David: No problem, I'll have preliminary designs ready for our next meeting.
 Sarah: Excellent! I'll create a shared project timeline and send it out later today. Let's reconvene next week to check on our progress. Thank you all for your input!
 '''
 
-    # print(f"Test transcript: \n{transcript}")
-
     # Prepare the state dictionary
     test_state = {"transcript": transcript}
 
     # Invoke the graph with the state
-    print("\nExtracting attendees...")
-    result = extract_attendees(test_state)
-    # print(f"After attendees extraction: {result}")
+    # print("\nExtracting attendees...")
+    # result = extract_attendees(test_state)
 
-    # Extract key points
-    print("\nExtracting key points...")
-    result = extract_key_points(result)
-    # print(f"After key points extraction: {result}")
+    # # Extract key points
+    # print("\nExtracting key points...")
+    # result = extract_key_points(result)
 
-    # Extract action items
-    print("\nExtracting action items...")
-    result = extract_action_items(result)
-    # print(f"After action items extraction: {result}")
+    # # Extract action items
+    # print("\nExtracting action items...")
+    # result = extract_action_items(result)
 
-    # Build minutes
-    print("\nBuilding minutes...")
-    result = build_minutes(result)
-    # print(f"After minutes building: {result}")
+    # # Build minutes
+    # print("\nBuilding minutes...")
+    # result = build_minutes(result)
 
-    # Print final minutes
-    print("\nFinal minutes:\n")
-    print(result.get('minutes', ''))
+    result = compiled_graph.invoke(test_state)
 
+    # Print the final minutes
+    if 'minutes' in result:
+        print("\nFinal Meeting Minutes:")
+        print(result['minutes'])
+    else:
+        print("\nNo minutes were generated!")
+        print(f"Available keys in result: {result.keys()}")
 
 if __name__ == "__main__":
     test()
