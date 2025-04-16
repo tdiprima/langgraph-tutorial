@@ -209,6 +209,50 @@ def extract_action_items(state):
     return {**state, 'action_items': action_items}
 
 
+def build_minutes(state):
+    """Build meeting minutes from extracted information"""
+    attendees = state.get('attendees', [])
+    key_points = state.get('key_points', [])
+    action_items = state.get('action_items', [])
+
+    # Build minutes
+    minutes = "# Meeting Minutes\n\n"
+
+    # Add attendees section
+    minutes += "## Attendees\n"
+    if attendees:
+        for attendee in attendees:
+            minutes += f"- {attendee}\n"
+    else:
+        minutes += "- No attendees recorded\n"
+    minutes += "\n"
+
+    # Add key points section
+    minutes += "## Key Discussion Points\n"
+    if key_points:
+        for point in key_points:
+            minutes += f"- {point}\n"
+    else:
+        minutes += "- No key points recorded\n"
+    minutes += "\n"
+
+    # Add action items section
+    minutes += "## Action Items\n"
+    if action_items:
+        for item in action_items:
+            action = item.get('action', '')
+            assignee = item.get('assignee', '')
+            if action and assignee:
+                minutes += f"- {action} (Assigned to: {assignee})\n"
+            elif action:
+                minutes += f"- {action}\n"
+    else:
+        minutes += "- No action items recorded\n"
+
+    # Return updated state with minutes
+    return {**state, 'minutes': minutes}
+
+
 def test():
     # Create a detailed transcript with five speakers discussing a patient-centric chatbot
     transcript = '''
@@ -293,6 +337,15 @@ Sarah: Excellent! I'll create a shared project timeline and send it out later to
     print("\nExtracting action items...")
     result = extract_action_items(result)
     # print(f"After action items extraction: {result}")
+
+    # Build minutes
+    print("\nBuilding minutes...")
+    result = build_minutes(result)
+    # print(f"After minutes building: {result}")
+
+    # Print final minutes
+    print("\nFinal minutes:\n")
+    print(result.get('minutes', ''))
 
 
 if __name__ == "__main__":
